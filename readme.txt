@@ -2,10 +2,10 @@
 Contributors: domkirby
 Donate link: https://domkirby.com
 Tags: cloudflare, jwt, access, login, authentication
-Requires at least: 5.8
+Requires at least: 6.2
 Tested up to: 6.3
 Requires PHP: 7.4
-Stable tag: 
+Stable tag: 0.9.0
 License: MIT
 License URI: https://opensource.org/licenses/MIT
 
@@ -55,6 +55,9 @@ Yes, as long as you maintain at least one account with a known password.
 Yes, your site must be protected by Cloudflare Access. Refer to the Cloudflare documentation for guidance on setting up Access.
 
 == Changelog ==
+
+= 0.9.0 =
+A test release, not ready for use!
 
 = 0.14 =
 
