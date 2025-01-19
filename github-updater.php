@@ -89,12 +89,17 @@ class GitHub_Updater {
     }
 
     public function rename_downloaded_folder($source, $remote_source, $upgrader) {
+        // Ensure the upgrader's skin object has the 'plugin' property
+        if (!isset($upgrader->skin) || !property_exists($upgrader->skin, 'plugin')) {
+            return $source; // Return the original source if the property is not set
+        }
+    
         // Use the constant for the plugin folder name
         $plugin_folder = self::PLUGIN_FOLDER;
-
+    
         // Extracted folder name
         $new_folder = basename($source);
-
+    
         // Check and rename if needed
         if ($plugin_folder !== $new_folder) {
             $corrected_path = trailingslashit($remote_source) . $plugin_folder;
@@ -105,7 +110,7 @@ class GitHub_Updater {
                 return new WP_Error('rename_failed', __('Unable to rename the plugin folder.', 'my-plugin-text-domain'));
             }
         }
-
+    
         return $source;
     }
 }
