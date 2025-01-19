@@ -14,6 +14,7 @@ class GitHub_Updater {
 
         add_filter('pre_set_site_transient_update_plugins', [$this, 'check_for_update']);
         add_filter('plugins_api', [$this, 'plugins_api_handler'], 10, 3);
+        add_filter('upgrader_source_selection', [$this, 'rename_downloaded_folder'], 10, 3);
     }
 
     public function check_for_update($transient) {
@@ -84,5 +85,31 @@ class GitHub_Updater {
 
         $data = wp_remote_retrieve_body($response);
         return json_decode($data);
+    }
+
+    public function rename_downloaded_folder($source, $remote_source, $upgrader) {
+        // Check if this is for our plugin
+        if (!isset($upgrader->skin->plugin)) {
+            return $source;
+        }
+
+        // Get the current plugin folder name
+        $plugin_folder = dirname($this->plugin_slug);
+
+        // Get the actual folder name of the downloaded plugin
+        $new_folder = basename($source);
+
+        // Rename if the folders do not match
+        if ($plugin_folder !== $new_folder) {
+            $corrected_path = trailingslashit($remote_source) . $plugin_folder;
+            if (rename($source, $corrected_path)) {
+                return $corrected_path;
+            } else {
+                $upgrader->skin->feedback(__('Failed to rename downloaded folder.', 'my-plugin-text-domain'));
+                return new WP_Error('rename_failed', __('Unable to rename the plugin folder.', 'my-plugin-text-domain'));
+            }
+        }
+
+        return $source;
     }
 }
