@@ -3,7 +3,7 @@
  * Plugin Name: CF Access Login
  * Plugin URI: https://github.com/domkirby/CF-Access-Login
  * Description: A plugin to enable Cloudflare Access login for WordPress
- * Version: 0.9.14
+ * Version: 0.9.15
  * Author: Dom Kirby
  * Author URI: https://domkirby.com
  * License: MIT
@@ -21,9 +21,9 @@
 
 // JWT Classes from composer
 require_once(__DIR__ . '/vendor/autoload.php');
-
-//Updater
-require_once(__DIR__ . '/github-updater.php');
+ 
+// Include the plugin update checker https://github.com/YahnisElsts/plugin-update-checker
+require_once(__DIR__ . '/update-checker/plugin-update-checker.php');
 
 //Settings
 require_once __DIR__ . '/cfa-settings.php';
@@ -302,5 +302,11 @@ function cf_access_login_textdomain() {
 add_action('plugins_loaded', __NAMESPACE__ . '\\cf_access_login_textdomain');
 
 
-//Updater not yet used.
-//new GitHub_Updater(__FILE__);
+//Instantiate the update checker
+use YahnisElsts\PluginUpdateChecker\v5\PucFactory;
+$updateChecker = PucFactory::buildUpdateChecker(
+    'https://github.com/domkirby/CF-Access-Login',
+    __FILE__,
+    'CF-Access-Login'
+);
+$updateChecker->setBranch('stable');
