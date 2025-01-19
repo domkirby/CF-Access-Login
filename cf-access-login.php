@@ -22,6 +22,8 @@
 // JWT Classes from composer
 require_once(__DIR__ . '/vendor/autoload.php');
 
+//Updater
+require_once(__DIR__ . '/github-updater.php');
 
 //Settings
 require_once __DIR__ . '/cfa-settings.php';
@@ -299,3 +301,7 @@ function cf_access_login_textdomain() {
     load_plugin_textdomain('cf-access-login', false, dirname(plugin_basename(__FILE__)) . '/languages/');
 }
 add_action('plugins_loaded', __NAMESPACE__ . '\\cf_access_login_textdomain');
+
+
+//Updater
+new GitHub_Updater(__FILE__);
