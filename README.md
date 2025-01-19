@@ -3,9 +3,9 @@
 This WordPress plugin allows you to login to WordPress using a Cloudflare Access JSON Web Token (JWT). It works for websites that are protected by Cloudflare Access to require additional authentication to the WordPress admin area.
 
 ## Installation
-Download the latest [Release ZIP](https://github.com/domkirby/CF-Access-Login/releases) from this repo and upload it to your site. This plugin **DOES NOT** automatically update yet! You will need to check back here for releases (or, easier, watch the repo).
+Download the latest [Release ZIP](https://github.com/domkirby/CF-Access-Login/releases) from this repo and upload it to your site. Be sure to download ``CF-Access-Login.zip`` and *not* the source code zip, as this will ensure the folder is named correctly once you install it to WordPress.
 
-I plan to add an updater later on, but it's giving me a real headache.
+The plugin will use the ``stable`` branch to check for released updates and is auto updater compatible.
 
 ## Use
 If you do not protect your WordPress site with Cloudflare Access, this plugin will do you no good!
@@ -30,3 +30,6 @@ Configure the following options:
 ![The settings screen](settings.png)
 
 All other authentication options are handled by Cloudflare.
+
+## Issues
+If you find an issue, please open a detailed issue on this repo. Pull requests are welcome!

@@ -3,9 +3,9 @@ Contributors: domkirby
 Donate link: https://domkirby.com
 Tags: cloudflare, jwt, access, login, authentication
 Requires at least: 6.2
-Tested up to: 6.3
+Tested up to: 6.7.1
 Requires PHP: 7.4
-Stable tag: 0.9.15
+Stable tag: 1.1.1
 License: MIT
 License URI: https://opensource.org/licenses/MIT
 
@@ -55,6 +55,15 @@ Yes, as long as you maintain at least one account with a known password.
 Yes, your site must be protected by Cloudflare Access. Refer to the Cloudflare documentation for guidance on setting up Access.
 
 == Changelog ==
+
+= 1.0.0 =
+A first real release that includes 
+- The token login functionality
+- Options for auto-redirection and auto-logout from Cloudflare
+- An updater from YahnisElsts/plugin-update-checker that will update off of the 'stable' branch
+
+= A whole mess of stuff =
+There are a LOT of iterations here. Feel free to checkout the GitHub history!
 
 = 0.9.0 =
 A test release, not ready for use!
