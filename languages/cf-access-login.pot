@@ -56,3 +56,21 @@ msgstr ""
 
 msgid "You have been logged in with your Cloudflare Access token."
 msgstr ""
+
+msgid "Cloudflare auto redirection enabled, but you are on localhost. Assuming dev and cancelling the redirect."
+msgstr ""
+
+msgid "Cloudflare login failed with your token. Please login manually to troubleshoot."
+msgstr ""
+
+msgid "There is an issue with the JWT issued by Cloudflare, because "issuer" (iss) field is incorrect."
+msgstr ""
+
+msgid "Malformed JWT"
+msgstr ""
+
+msgid "<strong>WARNING:</strong> Cloudflare Access Login is enabled but is missing settings!"
+msgstr ""
+
+msgid "Go to Options"
+msgstr ""

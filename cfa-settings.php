@@ -47,7 +47,9 @@ class Settings {
         register_setting('cf_access_login_settings_group', 'cf_access_login_auto_redirect', [
             'sanitize_callback' => [$this, 'sanitize_checkbox']
         ]);
-        register_setting('cf_access_login_settings_group', 'cf_access_login_logout_on_wp_logout');
+        register_setting('cf_access_login_settings_group', 'cf_access_login_logout_on_wp_logout', [
+            'sanitize_callback' => [$this, 'sanitize_checkbox']
+        ]);
 
         add_settings_section(
             'cf_access_login_settings_section',
