@@ -7,9 +7,10 @@ class GitHub_Updater {
     // Define constants for the GitHub repository details
     const GITHUB_OWNER = 'domkirby'; // Replace with your GitHub username or organization
     const GITHUB_REPO = 'CF-Access-Login'; // Replace with your GitHub repository name
-    const PLUGIN_SLUG = 'CF-Access-Login/CF-Access-Login.php';
+    const PLUGIN_FOLDER = 'CF-Access-Login'; // Define the plugin folder name as a constant
+
     public function __construct($plugin_file) {
-        $this->plugin_slug = self::PLUGIN_SLUG;
+        $this->plugin_slug = 'my-plugin/my-plugin.php'; // Hardcoded slug for this specific plugin
         $this->plugin_file = $plugin_file;
 
         add_filter('pre_set_site_transient_update_plugins', [$this, 'check_for_update']);
@@ -88,13 +89,8 @@ class GitHub_Updater {
     }
 
     public function rename_downloaded_folder($source, $remote_source, $upgrader) {
-        // Ensure this is for the correct plugin
-        if (!isset($upgrader->skin->plugin) || $upgrader->skin->plugin !== $this->plugin_slug) {
-            return $source;
-        }
-
-        // Get the current plugin folder name
-        $plugin_folder = dirname($this->plugin_slug);
+        // Use the constant for the plugin folder name
+        $plugin_folder = self::PLUGIN_FOLDER;
 
         // Extracted folder name
         $new_folder = basename($source);
