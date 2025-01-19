@@ -3,7 +3,7 @@
  * Plugin Name: CF Access Login
  * Plugin URI: https://github.com/domkirby/CF-Access-Login
  * Description: A plugin to enable Cloudflare Access login for WordPress
- * Version: 0.9.11
+ * Version: 0.9.13
  * Author: Dom Kirby
  * Author URI: https://domkirby.com
  * License: MIT
@@ -303,5 +303,5 @@ function cf_access_login_textdomain() {
 add_action('plugins_loaded', __NAMESPACE__ . '\\cf_access_login_textdomain');
 
 
-//Updater
-new GitHub_Updater(__FILE__);
+//Updater not yet used.
+//new GitHub_Updater(__FILE__);
