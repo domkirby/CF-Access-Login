@@ -88,21 +88,21 @@ class GitHub_Updater {
     }
 
     public function rename_downloaded_folder($source, $remote_source, $upgrader) {
-        // Check if this is for our plugin
-        if (!isset($upgrader->skin->plugin)) {
+        // Ensure this is for the correct plugin
+        if (!isset($upgrader->skin->plugin) || $upgrader->skin->plugin !== $this->plugin_slug) {
             return $source;
         }
 
         // Get the current plugin folder name
         $plugin_folder = dirname($this->plugin_slug);
 
-        // Get the actual folder name of the downloaded plugin
+        // Extracted folder name
         $new_folder = basename($source);
 
-        // Rename if the folders do not match
+        // Check and rename if needed
         if ($plugin_folder !== $new_folder) {
             $corrected_path = trailingslashit($remote_source) . $plugin_folder;
-            if (rename($source, $corrected_path)) {
+            if (@rename($source, $corrected_path)) { // Use @ to suppress warnings if rename fails
                 return $corrected_path;
             } else {
                 $upgrader->skin->feedback(__('Failed to rename downloaded folder.', 'my-plugin-text-domain'));

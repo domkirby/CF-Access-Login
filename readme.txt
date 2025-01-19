@@ -5,7 +5,7 @@ Tags: cloudflare, jwt, access, login, authentication
 Requires at least: 6.2
 Tested up to: 6.3
 Requires PHP: 7.4
-Stable tag: 0.9.6
+Stable tag: 0.9.7
 License: MIT
 License URI: https://opensource.org/licenses/MIT
 
