@@ -74,3 +74,9 @@ msgstr ""
 
 msgid "Go to Options"
 msgstr ""
+
+msgid "Settings"
+msgstr ""
+
+msgid "Report an Issue"
+msgstr ""
