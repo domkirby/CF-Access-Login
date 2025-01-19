@@ -3,7 +3,7 @@
  * Plugin Name: CF Access Login
  * Plugin URI: https://github.com/domkirby/CF-Access-Login
  * Description: A plugin to enable Cloudflare Access login for WordPress
- * Version: 1.0.0
+ * Version: 1.0.1
  * Author: Dom Kirby
  * Author URI: https://domkirby.com
  * License: MIT
@@ -135,6 +135,37 @@ function login_page_cf_failed_message($message)
     return $message . $warning_message;
 }
 
+function loggedout_noredir_warning($message)
+{
+    $warning_message = '<div class="message error" style="text-align: center;">' . 
+        __('You logged out of WordPress and not Cloudflare access! To log back in, click the admin link: ', 'cf-access-login') .
+        '<a href="'.admin_url(  ).'">'.__('Login', 'cf-access-login').'</a> <a href="/cdn-cgi/logout">'. __( 'Logout from Cloudflare Access', 'cf-access-login' ) .'</a>' . 
+        '</div>';
+
+    return $message . $warning_message;
+}
+
+function is_user_logging_in()
+{
+    if(str_contains($_SERVER['REQUEST_URI'], 'wp-login.php')) {
+        if(isset($_GET['loggedout']) && !empty($_GET['loggedout'])) {
+            add_filter( 'login_message', __NAMESPACE__ . '\\loggedout_noredir_warning' );
+            return false;
+        }
+        return true;
+    }
+    $getVar = $_GET['force_jwt_check'] ?? '';
+    if($getVar != '') {
+        return true;
+    }
+
+    if(!is_user_logged_in(  ) && str_contains($_SERVER['REQUEST_URI'], 'wp-admin')) {
+        return true;
+    }
+
+    return false;
+}
+
 function try_login() {
     global $client_jwt;
     if($client_jwt == '') {
@@ -149,7 +180,9 @@ function try_login() {
         return;
     }
 
-    
+    if(!is_user_logging_in()) {
+        return;
+    }
 
     $recognized = false;
     $user = null;
@@ -264,12 +297,7 @@ function logout_redirect()
         return;
     }
     if(get_logout_on_wp_logout()) {
-        $hostname = $_SERVER['HTTP_HOST'];
-        if($hostname == "localhost") {
-            add_filter( 'login_message', __NAMESPACE__ . '\\show_localhost_warning_login_page' );
-            return;
-        }
-        
+              
         if(wp_safe_redirect( '/cdn-cgi/access/logout', 302, 'CFA-Login' )) {
             exit;
         }

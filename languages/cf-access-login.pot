@@ -80,3 +80,12 @@ msgstr ""
 
 msgid "Report an Issue"
 msgstr ""
+
+msgid "You logged out of WordPress and not Cloudflare access! To log back in, click the admin link: "
+msgstr ""
+
+msgid "Login"
+msgstr ""
+
+msgid "Logout from Cloudflare Access"
+msgstr ""
