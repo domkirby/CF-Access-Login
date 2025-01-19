@@ -7,9 +7,9 @@ class GitHub_Updater {
     // Define constants for the GitHub repository details
     const GITHUB_OWNER = 'domkirby'; // Replace with your GitHub username or organization
     const GITHUB_REPO = 'CF-Access-Login'; // Replace with your GitHub repository name
-
+    const PLUGIN_SLUG = 'CF-Access-Login/CF-Access-Login.php';
     public function __construct($plugin_file) {
-        $this->plugin_slug = plugin_basename($plugin_file);
+        $this->plugin_slug = self::PLUGIN_SLUG;
         $this->plugin_file = $plugin_file;
 
         add_filter('pre_set_site_transient_update_plugins', [$this, 'check_for_update']);
