@@ -3,7 +3,7 @@
  * Plugin Name: CF Access Login
  * Plugin URI: https://github.com/domkirby/CF-Access-Login
  * Description: A plugin to enable Cloudflare Access login for WordPress
- * Version: 1.0.1
+ * Version: 1.0.2
  * Author: Dom Kirby
  * Author URI: https://domkirby.com
  * License: MIT
@@ -233,18 +233,29 @@ function try_login() {
                 wp_set_auth_cookie($user_id);
                 add_action( 'init', function() use($user) {
                     do_action('wp_login', $user->name, $user);
-                    $returnUrl = $_GET['redirect_to'] ?? admin_url();
-                    if(str_contains($returnUrl, '?')) {
-                        $cf_login_query = "&cf_access_token_loggedin=1";
+
+                    // Determine the return URL
+                    $requestedUri = $_SERVER['REQUEST_URI'] ?? null; // Use null if not set
+                    $returnUrl = null;
+
+                    // If the requested URI is not wp-login.php, use it; otherwise, fallback to 'redirect_to' or admin_url.
+                    if ($requestedUri !== null && !str_contains($requestedUri, 'wp-login.php')) {
+                        $returnUrl = $requestedUri;
                     } else {
-                        $cf_login_query = "?cf_access_token_loggedin=1";
+                        $returnUrl = $_GET['redirect_to'] ?? admin_url();
                     }
-                    $returnUrl = $_SERVER['REQUEST_URI'];
-                    wp_safe_redirect($returnUrl . $cf_login_query, 302, 'CFA-Login');
+
+                    // Ensure the query string is appended correctly
+                    if (str_contains($returnUrl, '?')) {
+                        $returnUrl .= '&cf_access_token_loggedin=1';
+                    } else {
+                        $returnUrl .= '?cf_access_token_loggedin=1';
+                    }
+
+                    // Perform the redirect
+                    wp_safe_redirect($returnUrl, 302, 'CFA-Login');
                     exit;
                 });
-                
-                wp_safe_redirect(admin_url());
             }
         } elseif($user_id = 0) {
             wp_logout();
