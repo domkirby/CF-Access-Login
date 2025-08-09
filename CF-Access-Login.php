@@ -34,9 +34,12 @@ use Firebase\JWT\JWT;
 define('WP_CF_ACCESS_JWT_ALGORITHM', ['RS256']);
 define('WP_CF_ACCESS_RETRY', 1);
 define('WP_CF_ACCESS_CACHE_KEY', 'cf_access_jwt_keys');
+// Add a TTL for JWKS cache (1 hour)
+define('WP_CF_ACCESS_JWKS_TTL', 3600);
 
 //$settings = new Settings();
-$client_jwt = $_COOKIE['CF_Authorization'] ?? '';
+// Read JWT from CF cookie or header fallback
+$client_jwt = $_COOKIE['CF_Authorization'] ?? ($_SERVER['HTTP_CF_ACCESS_JWT_ASSERTION'] ?? '');
 
 
 function get_auth_domain() {
@@ -76,7 +79,8 @@ function fetch_jwks() {
         return false;
     }
 
-    wp_cache_set(WP_CF_ACCESS_CACHE_KEY, $jwks);
+    // Cache with TTL
+    wp_cache_set(WP_CF_ACCESS_CACHE_KEY, $jwks, '', WP_CF_ACCESS_JWKS_TTL);
 
     return $jwks;
 }
@@ -94,7 +98,7 @@ function get_jwks() {
 function verify_audience($jwt) {
     $audience = get_jwt_audience();
 
-    if ($audience === null) {
+    if (empty($audience)) {
         return false;
     }
 
@@ -102,7 +106,7 @@ function verify_audience($jwt) {
         return false;
     }
     if(is_array($jwt->aud)) {
-        return in_array($audience, $jwt->aud);
+        return in_array($audience, $jwt->aud, true);
     } else {
         return $audience == $jwt->aud;
     }
@@ -190,18 +194,18 @@ function try_login() {
     $retries = 0;
 
     if($client_jwt != '') {
-        $jwt = $client_jwt;
+        $jwtString = $client_jwt;
         JWT::$leeway = 60;
         
 
         while (!$recognized && $retries < WP_CF_ACCESS_RETRY) {
             try {
-                $jwt = JWT::decode($jwt, JWK::parseKeySet($jwks));
+                $jwtObj = JWT::decode($jwtString, JWK::parseKeySet($jwks));
                 
-                if (!verify_audience($jwt)) {
+                if (!verify_audience($jwtObj)) {
                     return;
                 }
-                if(!verify_issuer($jwt)) {
+                if(!verify_issuer($jwtObj)) {
                     $args = array(
                         'response' => 500,
                         'link_url' => '/cdn-cgi/access/logout',
@@ -211,55 +215,65 @@ function try_login() {
                     wp_die( __('There is an issue with the JWT issued by Cloudflare, because "issuer" (iss) field is incorrect.'), __('Malformed JWT'), $args );
                 }
 
-                $email = $jwt->email;
+                if (empty($jwtObj->email) || !is_string($jwtObj->email)) {
+                    return;
+                }
+
+                $email = $jwtObj->email;
                 $user = get_user_by('email', $email);
-                $user_id = $user->ID;
-                $recognized = true;
+                if ($user instanceof \WP_User) {
+                    $user_id = (int) $user->ID;
+                    $recognized = true;
+                } else {
+                    $user_id = 0;
+                    $recognized = false;
+                }
             } catch(\UnexpectedValueException $e) {
                 $jwks = fetch_jwks();
                 $retries++;
-            } catch (Exception $e) {
+            } catch (\Exception $e) {
                 return;
             }
         }
 
-        if ($recognized) {
+        if ($recognized && $user_id > 0) {
             $current_user = wp_get_current_user();
-            if($current_user->ID  == $user_id) {
+            if((int) $current_user->ID === $user_id) {
                 return;
             }
-            if($user_id > 0) {
-                wp_set_current_user($user_id);
-                wp_set_auth_cookie($user_id);
-                add_action( 'init', function() use($user) {
-                    do_action('wp_login', $user->name, $user);
+            
+            wp_set_current_user($user_id);
+            wp_set_auth_cookie($user_id);
+            add_action( 'init', function() use($user) {
+                // Correct param order and value for wp_login action.
+                do_action('wp_login', $user->user_login, $user);
 
-                    // Determine the return URL
-                    $requestedUri = $_SERVER['REQUEST_URI'] ?? null; // Use null if not set
-                    $returnUrl = null;
+                // Determine the return URL
+                $requestedUri = $_SERVER['REQUEST_URI'] ?? null; // Use null if not set
+                $returnUrl = null;
 
-                    // If the requested URI is not wp-login.php, use it; otherwise, fallback to 'redirect_to' or admin_url.
-                    if ($requestedUri !== null && !str_contains($requestedUri, 'wp-login.php')) {
-                        $returnUrl = $requestedUri;
-                    } else {
-                        $returnUrl = $_GET['redirect_to'] ?? admin_url();
-                    }
+                // If the requested URI is not wp-login.php, use it; otherwise, fallback to 'redirect_to' or admin_url.
+                if ($requestedUri !== null && !str_contains($requestedUri, 'wp-login.php')) {
+                    $returnUrl = $requestedUri;
+                } else {
+                    // Validate redirect_to to prevent unsafe redirects
+                    $redirectTo = isset($_GET['redirect_to'])
+                        ? wp_validate_redirect($_GET['redirect_to'], admin_url())
+                        : admin_url();
+                    $returnUrl = $redirectTo;
+                }
 
-                    // Ensure the query string is appended correctly
-                    if (str_contains($returnUrl, '?')) {
-                        $returnUrl .= '&cf_access_token_loggedin=1';
-                    } else {
-                        $returnUrl .= '?cf_access_token_loggedin=1';
-                    }
+                // Ensure the query string is appended correctly
+                if (str_contains($returnUrl, '?')) {
+                    $returnUrl .= '&cf_access_token_loggedin=1';
+                } else {
+                    $returnUrl .= '?cf_access_token_loggedin=1';
+                }
 
-                    // Perform the redirect
-                    wp_safe_redirect($returnUrl, 302, 'CFA-Login');
-                    exit;
-                });
-            }
-        } elseif($user_id = 0) {
-            wp_logout();
-            wp_set_current_user(0);
+                // Perform the redirect
+                wp_safe_redirect($returnUrl, 302, 'CFA-Login');
+                exit;
+            });
         } elseif(get_redirect_login()) {
             $args = array(
                 'response' => 500,
@@ -267,7 +281,7 @@ function try_login() {
                 'link_text' => __('Log out and try again', 'cf-access-login'),
                 'exit' => true
             );
-            error_log('CFA JWT Login Failed due to not found user.');
+            error_log('CFA JWT Login Failed: token valid but WordPress user not found, or token invalid.');
             $error = __('The user in the JWT could not be found in WordPress, or there was a problem with the token.', 'cf-access-login');
             wp_die($error, '', $args);
         }
